@@ -1,0 +1,29 @@
+{
+  "executed_at_local": "2026-10-25",
+  "project": "bussiness-case-tyc",
+  "dataset": "bussiness_case_ecommerce",
+  "quality_job": "job_jP1tGSlMlKV9phGgVKJGE-65IWaH",
+  "full_base_job": "job_I_JD2_c7NAfS2M6iJlyk7NKUHWSY",
+  "base_rows_expected": 79634,
+  "base_bytes_processed_mb_ui": 206.26,
+  "controls": {
+    "orders_rows": 124596,
+    "orders_duplicate_ids": 0,
+    "orders_null_keys_dates": 0,
+    "users_duplicate_ids": 0,
+    "products_duplicate_ids": 0,
+    "items_duplicate_ids": 0,
+    "orders_without_user": 0,
+    "items_without_order": 0,
+    "items_without_product": 0,
+    "items_user_mismatch": 0,
+    "items_after_order_timestamp": 78579,
+    "items_null_price": 0,
+    "items_negative_price": 0,
+    "orders_without_items": 0,
+    "orders_before_user_registration": 0
+  },
+  "states": {"Shipped":37212,"Complete":31157,"Processing":24957,"Cancelled":18714,"Returned":12556},
+  "min_order_timestamp_utc":"2019-01-22 14:50:00",
+  "max_order_timestamp_utc":"2025-02-14 19:31:25.006404"
+}
