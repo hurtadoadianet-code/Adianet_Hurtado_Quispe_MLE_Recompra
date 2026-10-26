@@ -1,28 +1,20 @@
 # Recompra a 60 días
 
-**Adianet Hurtado Quispe · Caso Machine Learning Engineer · Octubre de 2026**
+**Adianet Hurtado Quispe · Caso Machine Learning Engineer**
 
-Solución para The Look, un ecommerce ficticio. Incluye SQL en BigQuery, notebook
-ejecutado con cinco figuras, preparación y predicción automatizadas en Python,
-comparación con referencia sencilla, evaluación temporal y diseño AWS.
+Análisis de recompra para The Look, un ecommerce ficticio. El objetivo es estimar si un cliente creará otra orden en los 60 días posteriores a su primera orden.
 
-## Presentación
+El [notebook](Adianet_Hurtado_Quispe_Recompra.ipynb) contiene las consultas SQL, el análisis, la comparación de modelos y cinco figuras con resultados visibles. La presentación se entregó por correo.
 
-- [Presentación ejecutiva PDF](Adianet_Hurtado_Quispe_Presentacion_Entrega.pdf)
-- [PowerPoint editable con notas](Adianet_Hurtado_Quispe_Presentacion_Entrega.pptx)
-- [Notebook ejecutado](Adianet_Hurtado_Quispe_Recompra.ipynb)
+## Resultados
 
-## Resultado principal
+La base tiene 79.634 clientes. De ellos, 70.741 cuentan con 60 días completos de seguimiento y 5.094 recompraron, una tasa del 7,20%. Los 8.893 restantes quedan fuera del entrenamiento y la evaluación por seguimiento incompleto.
 
-79.634 clientes, 70.741 con seguimiento completo y 7,20% de recompra global.
-Se excluyen de la evaluación 8.893 clientes sin 60 días completos. El candidato
-seleccionado en validación no mejora de forma útil el ranking en test: AP 0,1563
-frente a referencia 0,1593 y lift top20 de 1,003. Se recomienda mejorar la señal
-y validar nuevas cohortes antes de activar una campaña. No se inventaron resultados.
+El modelo de árboles se seleccionó por su resultado en validación. En la prueba final obtuvo AP de 0,1563, frente a 0,1593 de la referencia, y lift de 1,003 al priorizar el 20% de clientes. Estos resultados no respaldan su activación en producción. La recomendación es mejorar las señales disponibles y comprobar su estabilidad antes de realizar un piloto comercial.
 
-## Cómo ejecutar
+## Ejecución
 
-Clonar o descargar este repositorio, abrir una terminal en su raíz y ejecutar:
+Desde la raíz del repositorio:
 
 ```powershell
 python -m venv .venv
@@ -31,50 +23,45 @@ python -m pip install -r requirements.txt
 jupyter notebook Adianet_Hurtado_Quispe_Recompra.ipynb
 ```
 
-Ejecutar todas las celdas en orden. Los archivos de Python, la base comprimida
-y los controles están en la raíz para facilitar la ejecución. No se necesitan
-credenciales para reproducir el modelo con la extracción local.
-
-Alternativa sin notebook:
+Ejecutar las celdas en orden. La extracción comprimida permite reproducir el análisis sin credenciales de BigQuery. También se puede ejecutar el pipeline:
 
 ```powershell
 python pipeline.py --data model_base.csv.gz --output reports/run --cutoff 2025-02-14
 ```
 
-Las predicciones reemplazan el snapshot sin duplicar clientes. Modelo y
-transformaciones se guardan juntos, con parámetros, hash y versión.
+Las salidas se guardan en `reports/run`. Reejecutar reemplaza las predicciones del lote y no agrega clientes duplicados.
 
-## SQL y decisiones
+## Contenido
 
-00_schema_and_states.sql inspecciona estructura y estados. 01_quality.sql verifica
-claves, duplicados, nulos y cruces. 02_model_base.sql construye una fila por cliente.
-Fuente: bussiness-case-tyc.bussiness_case_ecommerce. Corte exclusivo 14/02/2025 UTC.
+| Archivo | Función |
+|---|---|
+| `Adianet_Hurtado_Quispe_Recompra.ipynb` | Análisis y evaluación ejecutados |
+| `pipeline.py` | Preparación, entrenamiento y predicción |
+| `00_schema_and_states.sql` | Estructura de tablas y estados de órdenes |
+| `01_quality.sql` | Controles de claves, nulos, duplicados y cruces |
+| `02_model_base.sql` | Construcción de una fila por cliente |
+| `model_base.csv.gz` | Base derivada para reproducir el análisis |
+| `source_quality.json` | Resultados de controles en el origen |
+| `metrics.json` | Métricas y períodos de evaluación |
+| `model_candidate.joblib` | Modelo candidato y transformaciones |
+| `sample_predictions.csv` | Muestra de probabilidades |
+| `arquitectura_aws.md` | Diseño de operación en AWS |
+| `requirements.txt` | Dependencias |
 
-El objetivo implementado es nueva orden creada en (primera orden, primera orden
-+60 días], con todos los estados. Se reporta sensibilidad sin futuras cancelaciones.
-Las variables usan solo ítems y eventos disponibles en la primera orden. Se
-excluyeron 78.579 ítems posteriores a su orden de las variables históricas.
-El catálogo se considera estático y se asume disponibilidad al tiempo del evento.
-En producción se necesita historia de catálogo, estados y tiempo de ingesta.
+## Decisiones de datos y evaluación
 
-Entrenamiento con etiquetas maduras antes de enero 2024, validación enero-junio
-2024 y test desde septiembre 2024, con 60 días de madurez entre bloques.
-La selección del modelo y umbral usa validación. El test solo mide resultados.
-No se usan IDs, próxima compra, estados finales o datos personales como variables.
+- Fuente: `bussiness-case-tyc.bussiness_case_ecommerce`.
+- Corte exclusivo: 14/02/2025 a las 00:00 UTC, para excluir el último día parcial.
+- Recompra: otra orden creada después de la primera y hasta 60 días después. Los ítems de la misma orden no cuentan como compras adicionales.
+- El objetivo principal incluye todos los estados de orden. Se reporta una sensibilidad que excluye futuras cancelaciones. Para predecir compras pagadas se necesitaría acordar otra definición y contar con historial de pagos y estados.
+- Las variables utilizan información disponible al crear la primera orden. Se excluyeron 78.579 ítems registrados después de su orden de las variables históricas.
+- Las transformaciones se ajustan solo con entrenamiento. La selección del modelo y del umbral usa validación, y la prueba final mide el desempeño posterior.
+- Entrenamiento con etiquetas maduras antes de enero de 2024, validación de enero a junio y prueba desde septiembre, respetando 60 días de madurez entre bloques.
 
-## Arquitectura y contenido adicional
+El catálogo se considera estático y se asume disponibilidad al tiempo del evento. Una implementación real requiere verificar tiempos de ingesta e historia de cambios. Los datos son del ecommerce ficticio del ejercicio y no incluyen nombres, correos, direcciones ni IP. Las predicciones representan una evaluación histórica, no una lista de campaña vigente.
 
-arquitectura_aws.md explica fuentes S3, transformación Glue, programación con
-EventBridge/Step Functions, entrenamiento y scoring SageMaker, almacenamiento
-de predicciones, monitoreo y versionamiento con GitHub. Es un diseño, no un despliegue.
+## Arquitectura
 
-El ZIP adjunto contiene la estructura completa del proyecto original, pruebas,
-gráficos individuales, documentación y resultados adicionales. Las pruebas del
-proyecto completo pasaron, y el notebook contiene diez celdas ejecutadas y cinco figuras.
+La propuesta parte de fuentes en S3 y utiliza Glue para transformación y controles, SageMaker para entrenamiento y predicción por lotes, y S3/Athena para entregar los resultados. EventBridge y Step Functions programan el flujo. El monitoreo revisa calidad de datos y desempeño cuando maduran las etiquetas. El código se versiona en GitHub. El diseño incluye una alternativa de integración con Snowflake.
 
-Los datos derivados corresponden al ecommerce ficticio del ejercicio y no
-incluyen nombres, correos, direcciones ni IP. Las predicciones son replay
-histórico al instante de primera orden, no una campaña vigente. El modelo
-serializado es un candidato no aprobado para producción.
-
-Referencias oficiales y fuentes están en el notebook y la documentación.
+No se desplegaron recursos cloud. Los supuestos, limitaciones y referencias oficiales están detallados en el notebook y en `arquitectura_aws.md`.
