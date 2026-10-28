@@ -4,7 +4,7 @@
 
 Análisis de recompra para The Look, un ecommerce ficticio. El objetivo es estimar si un cliente creará otra orden en los 60 días posteriores a su primera orden.
 
-El [notebook](Adianet_Hurtado_Quispe_Recompra.ipynb) contiene las consultas SQL, el análisis, la comparación de modelos y cinco figuras con resultados visibles. La presentación se entregó por correo.
+El [notebook](Adianet_Hurtado_Quispe_Recompra.ipynb) contiene las consultas SQL, el análisis, la comparación de modelos y cinco figuras con resultados visibles. 
 
 ## Resultados
 
